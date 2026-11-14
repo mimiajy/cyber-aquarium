@@ -1,0 +1,29 @@
+.DS_Store
+node_modules/
+*.log
+dist/
+build-report.json
+
+# Local credentials, machine-specific state, and temporary tooling
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+.codex/
+.agents/
+.config/
+.tools/
+.cache/
+.npm/
+.netlify/
+coverage/
+tmp/
+*.tmp
+# Local development and deployment notes can contain machine paths.
+STATUS.md
+PUBLICATION_REVIEW.md

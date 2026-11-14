@@ -1,0 +1,15 @@
+{
+  "name": "cyber-aquarium",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A little ocean. A little peace. An offline-friendly interactive aquarium.",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "check:dist": "node scripts/verify-dist.mjs",
+    "preview": "node server.mjs --dist"
+  },
+  "engines": { "node": ">=18" }
+}
