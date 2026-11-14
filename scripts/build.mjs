@@ -1,28 +1,24 @@
 // Copy-only production build: preserve rendering and script order exactly.
-import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, rm, writeFile, lstat } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { root, dist, verifyDist } from './verify-dist.mjs';
+import { runtimeFiles } from './runtime-files.mjs';
 
 execFileSync(process.execPath, [path.join(root, 'scripts/check.mjs')], { cwd: root, stdio: 'inherit' });
-for (const script of ['build.mjs', 'verify-dist.mjs']) {
+for(const check of ['scripts/check-audio.mjs','prototypes/fantasy-reef/check-school.mjs','prototypes/fantasy-reef/perf/check-render.mjs']) {
+  execFileSync(process.execPath,[path.join(root,check)],{cwd:root,stdio:'inherit'});
+}
+for (const script of ['build.mjs', 'verify-dist.mjs','runtime-files.mjs']) {
   execFileSync(process.execPath, ['--check', path.join(root, 'scripts', script)], { stdio: 'pipe' });
 }
-// Reject unintended editor/temp files instead of silently publishing them.
-async function checkSource(directory) {
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (entry.name === '.DS_Store') continue;
-    if (entry.name.startsWith('.') || entry.isSymbolicLink() || /(?:~|\.bak|\.log|\.map)$/.test(entry.name)) {
-      throw new Error(`Unexpected runtime source file: ${path.join(directory, entry.name)}`);
-    }
-    if (entry.isDirectory()) await checkSource(path.join(directory, entry.name));
-  }
-}
-for (const directory of ['css', 'js', 'assets']) await checkSource(path.join(root, directory));
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
-for (const item of ['index.html', 'css', 'js', 'assets']) {
-  await cp(path.join(root, item), path.join(dist, item), { recursive: true, filter: source => path.basename(source) !== '.DS_Store' });
+for (const item of runtimeFiles) {
+  const source=path.join(root,item);
+  if(!(await lstat(source)).isFile())throw Error(`Unexpected runtime source: ${item}`);
+  const target=path.join(dist,item);await mkdir(path.dirname(target),{recursive:true});
+  await cp(source,target);
 }
 await writeFile(path.join(dist, '.nojekyll'), '');
 const result = await verifyDist();

@@ -1,67 +1,61 @@
 # Cyber Aquarium
 
-**A little ocean. A little peace.** 一方属于你的梦幻海洋。
+**微光生长的地方。** 一片会呼吸的幻想海洋。
 
-[打开 Cyber Aquarium](https://mimiajy.github.io/cyber-aquarium/) · [源码仓库](https://github.com/mimiajy/cyber-aquarium) · [自动部署状态](https://github.com/mimiajy/cyber-aquarium/actions/workflows/deploy-pages.yml)
+[打开水族馆](https://mimiajy.github.io/cyber-aquarium/) · [源码仓库](https://github.com/mimiajy/cyber-aquarium) · [自动部署](https://github.com/mimiajy/cyber-aquarium/actions/workflows/deploy-pages.yml)
 
-纯 HTML、CSS、JavaScript 和本地 p5.js 实现。无需后端、付费 API、构建工具或 npm 依赖，运行时没有外部网络请求。
+风格化半写实奇幻海洋：三种自然鱼群、两只发光水母、丰富的珊瑚海葵、柔和光束和浮游微光。原生 HTML / CSS / JavaScript、Canvas 2D 与 WebGL 连续贴图形变，无后端、付费 API、运行时外部请求或 npm 依赖。
 
 ## 在 VS Code 启动
 
-1. 用 VS Code 打开整个 `cyber-aquarium` 文件夹。
-2. 选择菜单「终端 → 新建终端」。
-3. 执行 `npm start`（需要已安装 Node.js 18 或以上版本；**无需执行 npm install**）。
-4. 在 Mac 浏览器打开 **http://127.0.0.1:5173**。
-5. 修改代码并保存后，刷新浏览器即可看到变化。终端中按 `Control + C` 停止服务。
+1. 打开整个 `cyber-aquarium` 文件夹。
+2. 在终端运行 `npm start`（Node.js 18+，无需 `npm install`）。
+3. 浏览器打开 **http://127.0.0.1:5173/**。
+4. 修改源文件、保存、刷新即可；`Control+C` 停止服务。
 
-另外两种预览方式：
+端口已占用时，沿用已有服务，或运行 `PORT=5174 npm start`。也可使用 VS Code Live Server。推荐 HTTP 预览，确保浏览器可以读取 WebGL 素材。
 
-- **VS Code Live Server**：安装扩展后，右键 `index.html` → `Open with Live Server`，保存代码后自动刷新。
-- **直接打开**：在 Finder 中双击 `index.html`，即可离线体验。部分浏览器对 `file://` 的偏好存储有限制，使用本地服务更稳定。
+## 体验与声音
 
-如果 5173 端口已被占用，执行 `PORT=5174 npm start`，然后打开 http://127.0.0.1:5174。
+- 默认 18 条鱼，10–30 总量可调：蓝绿礁鱼、荧光灯鱼、长鳍神仙鱼，独立形态、游速和社交特点。
+- 点击水中或按 `G` 投喂，鱼群自然聚散、避让并追食。
+- 日间 / 深海主题、暂停 / 恢复、内部微光和纯净观赏；数量与视觉偏好保存在本地。
+- 点按 **开启氛围** 聆听原创 Underwater Ambient：柔和和声、缓慢空间变化与轻微水流。**每次进入默认静音**，音量滑块独立控制并记忆音量；开启/关闭柔和淡入淡出。
+- 音乐持续无文件循环断点，暂停动画或进入纯净观赏时仍可播放；再次点按音乐按钮关闭。沉浸模式下按 `H` 或“显示界面”即可找回控制。
 
-## GitHub Pages 自动部署
+快捷键：`空格` 暂停 / 恢复、`G` 投喂、`H` 纯净观赏。控件聚焦时保留原生键盘行为。支持触屏；系统减少动态效果时初始暂停画面。后台停止绘制，声音独立并受浏览器/系统后台策略约束。
 
-执行 `npm run build` 生成可直接上传的 **`dist/`** 文件夹，无需安装依赖。构建保留原 HTML、CSS 和 JavaScript，不改动视觉或动画。`npm run preview` 可预览该产物；原来的 `npm start` / `npm run dev` 继续用于开发。
+## 检查与构建
 
-GitHub Pages 的配置与更新说明见 [DEPLOY.md](DEPLOY.md)。首次完成仓库和 Pages 设置后，推送到 `main` 会自动运行 GitHub Actions，构建并部署 `dist`。本地执行构建命令不会上传或发布。构建清单保存在 `build-report.json`，`npm run check:dist` 可独立验证产物。
-
-## 第一版体验
-
-- **梦幻海底**：蓝紫水体、柔和光束、浮游微光、气泡、枝状珊瑚，以及缓缓摇曳的多层水草。
-- **自然鱼群**：默认 18 条，5 种体态、6 种配色；具有群聚、速度对齐、近距离分离、边界转向和水母避让行为。
-- **发光水母**：3 只水母，半透明伞体、呼吸脉动、独立摆动的细长触须。
-- **点击投喂**：点击水中，或按投喂按钮 / `G` 键。附近的小鱼会寻找食物、加速靠近并吃掉它。食物会慢慢下沉并消失。
-- **指尖微光**：移动鼠标留下轻微粒子；点击产生柔和涟漪。支持触屏轻点和拖动。
-- **两种主题**：日间海洋 / 霓虹深海，平滑过渡；主题和鱼群数量保存在本地。
-- **控制**：暂停、恢复、10–30 条鱼的数量调整、全屏、互动指南。
-
-快捷键：`空格` 暂停 / 恢复，`G` 投喂，`F` 全屏，`Esc` 关闭指南。控件获得焦点时，键盘遵循控件原有操作。
-
-系统若开启「减少动态效果」，页面初始为暂停状态，可手动恢复。浏览器标签页隐藏时停止绘制，回到页面后恢复。
-
-## 文件结构
-
-```text
-index.html                  页面内容、控制面板、互动指南
-css/style.css               布局、主题界面、移动端适配
-js/core.js                  数学、配色和绘制小工具
-js/creatures.js             Fish / Jellyfish：行为与外观
-js/environment.js           水体、光束、珊瑚、水草、气泡
-js/aquarium.js              p5 实例、场景生命周期、投喂、粒子
-js/ui.js                    控件事件、偏好存储同步、快捷键
-assets/vendor/p5.min.js     本地 p5.js 1.11.3
-server.mjs                  仅用于本地预览的静态文件服务
-scripts/check.mjs           语法、静态资源和模拟行为检查
+```bash
+npm run check
+npm run check:audio
+npm run check:reef
+npm run build
+npm run check:dist
+PORT=5174 npm run preview
 ```
 
-所有脚本按顺序加载，挂载于 `window.CyberAquarium`；未使用 ES module，便于直接双击 HTML。添加生物时，可参照 `creatures.js` 的 `update(dt, world)` 和 `draw(ctx, neon)` 接口，并在场景中注册。`dt` 使用秒，速度以逻辑像素 / 秒计。
+`npm run build` 自动运行原有检查、当前鱼群/渲染与音频控制测试，按明确清单复制最新场景到 `dist/`，检查网站根路径及 `/cyber-aquarium/` 项目子路径。产物不包含开发工具、凭据、旧美术素材、QA 图、测试或性能基线。构建本身不会上传网站。
 
-## 实现说明
+本地提交并 Push 到 `main` 后，GitHub Actions 自动构建并部署同一网址，详见 [DEPLOY.md](DEPLOY.md)。以后可直接让 Codex“修改并测试，然后提交推送 main，检查 Pages 部署”。不要直接编辑 `dist/`。
 
-画面全部实时绘制，没有背景照片或预渲染视频。p5.js 管理 Canvas 与动画循环，原生 Canvas 2D 绘制渐变和曲线。静态光束、珊瑚与地形使用离屏缓存；高分屏像素密度限制在 1.5，粒子和食物有数量上限。鱼群在当前 10–30 条范围内使用直观的成对邻域计算，便于阅读和改动。
+## 代码位置
 
-执行 `npm run check` 检查脚本语法、资源引用，以及固定步长下的鱼群分离、追食和暂停行为。实际帧率依设备、分辨率和浏览器而异。
+| 文件 | 用途 |
+| --- | --- |
+| `index.html` | 唯一正式页面和控制界面 |
+| `prototypes/fantasy-reef/style.css` | 既有视觉样式及响应式控制 |
+| `prototypes/fantasy-reef/app.js` | 页面事件、设置、主循环与共享脚本资源路径 |
+| `prototypes/fantasy-reef/fish-school.js` | 三鱼种 Boids、平滑转向、追食 |
+| `prototypes/fantasy-reef/scene.js` / `warp.js` | 分层合成、缓存与动态图集形变 |
+| `prototypes/fantasy-reef/audio.js` | 原创音轨合成与独立音乐控制器 |
+| `prototypes/fantasy-reef/assets/` | 六张当前绘画素材 |
+| `scripts/runtime-files.mjs` | 正式发布运行文件清单 |
+| `server.mjs` | 仅本地使用的静态预览服务 |
 
-第三方库：p5.js 1.11.3，LGPL-2.1。原始压缩文件保留版权声明，详见 [p5.js 项目](https://github.com/processing/p5.js) 与 `assets/vendor/p5.LICENSE.txt`。实例模式参考：[p5 官方文档](https://p5js.org/reference/p5/p5/)。
+保留 `prototypes/fantasy-reef/` 目录名以避免挪动已验证的场景和素材；其中旧 `index.html` 自动跳转正式首页。早期 p5 版本的代码和许可证保留在 Git 历史/原目录中，不作为当前首页运行或打包第三方 p5 库。
+
+当前场景使用批量 WebGL 图集、缓存光晕与真实时间小步更新；鱼种、素材、DPR 上限和环境元素数量未削减。性能记录见 [PERFORMANCE_REVIEW.md](prototypes/fantasy-reef/PERFORMANCE_REVIEW.md)。
+
+音频全部本地原创合成，无商业采样；原创音轨及生成参数采用 CC0 1.0，无强制署名，详见 [AUDIO.md](AUDIO.md)。该声明不改变图像、其他代码或历史第三方库的权利状态。

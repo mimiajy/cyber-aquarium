@@ -1,0 +1,35 @@
+[
+  {
+    "w": 1280,
+    "h": 720,
+    "count": 25,
+    "theme": "neon",
+    "meanAbsoluteRGB": 0.024088541666666668,
+    "rmseRGB": 0.15898531699033883,
+    "maxChannelDifference": 4,
+    "changedPixels": 41473,
+    "scope": "Native Canvas fallback only; cached glow interpolation/quantization differences; no browser FPS"
+  },
+  {
+    "w": 1280,
+    "h": 720,
+    "count": 50,
+    "theme": "day",
+    "meanAbsoluteRGB": 0.023159722222222224,
+    "rmseRGB": 0.15505328758443254,
+    "maxChannelDifference": 4,
+    "changedPixels": 38080,
+    "scope": "Native Canvas fallback only; cached glow interpolation/quantization differences; no browser FPS"
+  },
+  {
+    "w": 390,
+    "h": 844,
+    "count": 25,
+    "theme": "neon",
+    "meanAbsoluteRGB": 0.04936707578887674,
+    "rmseRGB": 0.22740814651874436,
+    "maxChannelDifference": 4,
+    "changedPixels": 30598,
+    "scope": "Native Canvas fallback only; cached glow interpolation/quantization differences; no browser FPS"
+  }
+]

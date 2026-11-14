@@ -2,6 +2,7 @@
 node_modules/
 *.log
 dist/
+study-dist/
 build-report.json
 
 # Local credentials, machine-specific state, and temporary tooling

@@ -1,101 +1,72 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="neon">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#061d31" />
-    <meta name="description" content="一方属于你的梦幻海洋。与鱼群、水母和微光一起，慢下来。" />
-    <title>Cyber Aquarium · 一方海洋</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="css/style.css" />
-    <script defer src="assets/vendor/p5.min.js"></script>
-    <script defer src="js/core.js"></script>
-    <script defer src="js/creatures.js"></script>
-    <script defer src="js/environment.js"></script>
-    <script defer src="js/aquarium.js"></script>
-    <script defer src="js/ui.js"></script>
-  </head>
-  <body>
-    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <symbol id="i-ocean" viewBox="0 0 32 32"><path d="M4 13c4-7 8-7 12 0s8 7 12 0M4 21c4-7 8-7 12 0s8 7 12 0"/><circle cx="22" cy="6" r="2"/></symbol>
-      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
-      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 13.5A8.7 8.7 0 0 1 10.5 3a9 9 0 1 0 10 10.5Z"/><path d="M17 3v4m-2-2h4"/></symbol>
-      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
-      <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 8.5a2.6 2.6 0 1 1 4 2.2c-1 .6-1.5 1-1.5 2.3m0 3.5h.01"/></symbol>
-      <symbol id="i-food" viewBox="0 0 24 24"><path d="m7 3 9 3-3.5 9L3.5 12Z"/><path d="m7 7 6 2M15 17l-1 2m5-6 2 1m-2 5 1 1"/><circle cx="9" cy="21" r=".5"/></symbol>
-      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
-      <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 4 12 8-12 8Z"/></symbol>
-      <symbol id="i-fish" viewBox="0 0 24 24"><path d="M18 12s-3-6-8-6-8 6-8 6 3 6 8 6 8-6 8-6Zm0 0 4-4v8Z"/><circle cx="7" cy="11" r=".7"/></symbol>
-      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
-      <symbol id="i-cursor" viewBox="0 0 24 24"><path d="m5 3 14 9-7 1-3 7Z"/></symbol>
-      <symbol id="i-jelly" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0c-5 3-11 3-16 0ZM7 15c-3 5 3 3 0 7m5-7c-3 5 3 3 0 7m5-7c-3 5 3 3 0 7"/></symbol>
-    </svg>
-
-    <main id="aquarium" aria-label="交互式虚拟水族馆，点击水中可投喂小鱼">
-      <div id="ocean-canvas"></div>
-      <div class="scene-vignette" aria-hidden="true"></div>
-
-      <header class="topbar">
-        <a class="brand" href="./" aria-label="Cyber Aquarium 首页">
-          <span class="brand-mark"><svg><use href="#i-ocean"/></svg></span>
-          <span>cyber<span class="brand-light">aquarium</span><span class="brand-dot">.</span></span>
-        </a>
-        <nav class="top-actions" aria-label="场景设置">
-          <div class="theme-switch" role="group" aria-label="海洋主题">
-            <button class="theme-button" data-theme-choice="day" aria-label="日间海洋" aria-pressed="false"><svg class="icon"><use href="#i-sun"/></svg><span>日间海洋</span></button>
-            <button class="theme-button is-active" data-theme-choice="neon" aria-label="霓虹深海" aria-pressed="true"><svg class="icon"><use href="#i-moon"/></svg><span>霓虹深海</span></button>
-          </div>
-          <span class="nav-divider"></span>
-          <button id="help-button" class="icon-button" aria-label="查看互动指南" title="互动指南"><svg class="icon"><use href="#i-help"/></svg></button>
-          <button id="fullscreen-button" class="icon-button fullscreen-button" aria-label="进入全屏" title="全屏 · F"><svg class="icon"><use href="#i-expand"/></svg></button>
-        </nav>
-      </header>
-
-      <section class="intro" aria-label="欢迎来到你的海洋">
-        <p class="eyebrow"><span class="live-dot"></span> YOUR OWN LITTLE OCEAN</p>
-        <h1>A little ocean.<br/>A little <em>peace.</em></h1>
-        <p class="intro-copy">让思绪漂浮，让时间慢下来。<br/>这一刻，只管与海洋相处。</p>
-        <span class="intro-line" aria-hidden="true"></span>
-      </section>
-
-      <aside class="scene-caption" aria-hidden="true"><span id="scene-number">02</span><span class="caption-line"></span><span id="scene-name">THE NEON DEPTHS</span></aside>
-
-      <div id="paused-badge" class="paused-badge" hidden><svg class="icon"><use href="#i-pause"/></svg>时间停在这一刻</div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-      <div class="bottom-ui">
-        <p class="interaction-hint" id="interaction-hint"><svg class="icon"><use href="#i-cursor"/></svg><span>轻点海水，投下一点小小的惊喜</span><span class="hint-dots">· · ·</span></p>
-        <section class="control-dock" aria-label="水族馆控制">
-          <button id="feed-button" class="feed-button"><svg class="icon"><use href="#i-food"/></svg><span>投喂小鱼</span><kbd>点击水中</kbd></button>
-          <span class="dock-divider"></span>
-          <button id="pause-button" class="pause-button" aria-label="暂停动画" aria-pressed="false" title="暂停 / 恢复 · 空格"><svg class="icon"><use id="pause-icon" href="#i-pause"/></svg><span id="pause-label">暂停</span></button>
-          <span class="dock-divider"></span>
-          <div class="population-control">
-            <label for="fish-count"><svg class="icon"><use href="#i-fish"/></svg><span>鱼群数量</span></label>
-            <input id="fish-count" type="range" min="10" max="30" value="18" step="1" aria-label="鱼群数量" aria-valuetext="18 条小鱼" />
-            <output id="fish-count-output" for="fish-count">18</output>
-          </div>
-        </section>
-        <footer class="footer">
-          <span class="footer-note"><span class="tiny-star">✧</span> 给自己一小片宁静</span>
-          <span class="ecosystem"><span class="ecosystem-dot"></span><span id="ecosystem-count">18 尾小鱼</span><span class="footer-separator">/</span>3 只水母<span class="footer-separator">/</span><span id="ecosystem-state">自在游弋中</span></span>
-          <span class="footer-signature">MADE OF WATER & WONDER</span>
-        </footer>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071f36">
+  <title>Cyber Aquarium · 微光生长的地方</title>
+  <meta name="description" content="一片会呼吸的幻想海洋：自然鱼群、发光水母与珊瑚花园。轻点投喂，开启深海氛围，慢慢沉入微光。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="prototypes/fantasy-reef/style.css">
+  <script defer src="js/core.js"></script>
+  <script defer src="js/creatures.js"></script>
+  <script defer src="prototypes/fantasy-reef/warp.js"></script>
+  <script defer src="prototypes/fantasy-reef/fish-school.js"></script>
+  <script defer src="prototypes/fantasy-reef/scene.js"></script>
+  <script defer src="prototypes/fantasy-reef/timing.js"></script>
+  <script defer src="prototypes/fantasy-reef/performance.js"></script>
+  <script defer src="prototypes/fantasy-reef/audio.js"></script>
+  <script defer src="prototypes/fantasy-reef/app.js"></script>
+</head>
+<body>
+  <main id="experience">
+    <canvas id="reef" role="img" aria-label="风格化奇幻海底：三种自然游动的鱼、两只半透明发光水母和丰富的珊瑚海葵群。点击海水可投喂。"></canvas>
+    <div class="edge-shade" aria-hidden="true"></div>
+    <header class="header ui">
+      <a href="./" class="brand"><span class="brand-wave">≈</span> cyber<span>aquarium</span><b>·</b></a>
+      <div class="header-actions"><span class="study-tag"><i></i> THE LUMINOUS GARDEN</span><div class="theme-switch" role="group" aria-label="昼夜主题"><button data-theme="day" aria-label="日间海洋" aria-pressed="false">☼ 日间</button><button data-theme="neon" aria-label="霓虹深海" aria-pressed="true">☾ 深海</button></div><button id="about" class="quiet-button">美术说明 <span>↗</span></button></div>
+    </header>
+    <section class="intro ui" aria-label="海底主题">
+      <p class="eyebrow">THE LUMINOUS GARDEN</p>
+      <h1>微光生长的地方。</h1>
+      <p class="english">Where the ocean dreams.</p>
+      <p class="description">珊瑚盛放，水母舒展。<br>一场安静的海底漫游。</p>
+      <span class="fine-line"></span>
+    </section>
+    <div id="loading" class="loading" role="status"><span class="loading-orb"></span><span id="loading-label">正在唤醒这片珊瑚花园</span></div>
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+    <div class="bottom ui">
+      <p class="hint" id="hint">轻点海水，送小鱼一份惊喜 <span>·</span> 移动指针，感受海流</p>
+      <div class="comfort-controls">
+      <div class="population-control"><label for="fish-count">鱼群数量</label><input id="fish-count" type="range" min="10" max="30" step="1" value="18" aria-label="三种鱼的总数量"><output id="fish-count-output" for="fish-count">18</output></div>
+      <div class="sound-control" role="group" aria-label="深海氛围音乐">
+        <button id="music" type="button" aria-label="开启深海氛围音乐" aria-pressed="false"><span id="music-icon" aria-hidden="true">♪</span><span id="music-label">开启氛围</span></button>
+        <label for="music-volume">音量</label><input id="music-volume" type="range" min="0" max="100" step="1" value="35" aria-label="氛围音乐音量"><output id="music-volume-output" for="music-volume">35%</output>
       </div>
-
-      <dialog id="help-dialog" aria-labelledby="help-title">
-        <div class="dialog-header"><span class="eyebrow">A MOMENT UNDERWATER</span><button id="close-help" class="icon-button" aria-label="关闭指南"><svg class="icon"><use href="#i-close"/></svg></button></div>
-        <h2 id="help-title">欢迎来到你的小小海洋。</h2>
-        <p class="dialog-intro">这里没有待办事项。只有游动、微光，还有一点点惊喜。</p>
-        <ul class="guide-list">
-          <li><svg class="icon"><use href="#i-food"/></svg><div><strong>送它们一份小惊喜</strong><p>点击任意水面，附近的小鱼会循着食物游过来。也可以按 <kbd>G</kbd> 投喂。</p></div></li>
-          <li><svg class="icon"><use href="#i-cursor"/></svg><div><strong>轻轻拨动海水</strong><p>移动鼠标，留下细小微光；在触屏上轻点或拖动也可以。</p></div></li>
-          <li><svg class="icon"><use href="#i-moon"/></svg><div><strong>换一种海洋心情</strong><p>在日间海洋与霓虹深海之间切换。你的选择会保存在这台设备。</p></div></li>
-          <li><svg class="icon"><use href="#i-pause"/></svg><div><strong>让时间停一会儿</strong><p><kbd>空格</kbd> 暂停 / 恢复 · <kbd>F</kbd> 全屏 · <kbd>Esc</kbd> 关闭指南</p></div></li>
-        </ul>
-        <button id="start-exploring" class="dialog-cta">回到海洋 <span>↗</span></button>
-      </dialog>
-      <noscript><div class="error-card">请在浏览器中启用 JavaScript，让这片海洋游动起来。</div></noscript>
-    </main>
-  </body>
+      </div>
+      <p id="sound-status" class="sr-only" role="status" aria-live="polite">音乐默认关闭，点按开启。</p>
+      <div class="controls" aria-label="水族馆控制">
+        <button id="pause" aria-label="暂停动画" aria-pressed="false"><span id="pause-symbol">Ⅱ</span><span id="pause-label">暂停</span></button>
+        <span class="separator"></span>
+        <label for="light"><span class="light-symbol">✧</span> 内部微光</label>
+        <input id="light" type="range" min="55" max="130" value="85" aria-label="生物荧光强度">
+        <span class="separator"></span>
+        <button id="feed" class="feed">轻点投喂 <span>·</span></button>
+        <span class="separator optional"></span>
+        <button id="clean" class="optional">纯净观赏 <span>⤢</span></button>
+      </div>
+      <footer><span>STYLIZED UNDERWATER FANTASY</span><span><span id="population-summary">18 条鱼 · 3 个鱼种</span> <i>/</i> 2 只水母 <i>/</i> 一片珊瑚花园</span><span>慢慢呼吸，与微光同行</span></footer>
+    </div>
+    <button id="restore-ui" hidden>显示界面 · H</button>
+    <dialog id="art-notes" aria-labelledby="notes-title">
+      <div class="dialog-top"><span class="eyebrow">ART DIRECTION / 02</span><button id="close-notes" aria-label="关闭说明">×</button></div>
+      <h2 id="notes-title">柔和、鲜活，带一点梦幻。</h2>
+      <p>风格化半写实奇幻海洋。以珊瑚与水母为主角，让小鱼自然融入画面。</p>
+      <dl><dt>鱼群</dt><dd>蓝绿礁鱼悠游，灯鱼聚散成小群，长鳍神仙鱼缓慢舒展。数量滑块控制三种鱼的总数。</dd><dt>珊瑚</dt><dd>枝状、扇状、管状与褶叶交错，海葵在微光中轻轻摆动。</dd><dt>水母</dt><dd>青蓝与淡紫从伞盖内部透出，收缩、舒展，触须随海流延迟摆动。</dd><dt>声音</dt><dd>原创深海氛围与轻柔水流，点按开启。音量独立控制，暂停画面或纯净观赏时仍可聆听。</dd><dt>空间</dt><dd>近处珊瑚、中央水体、远景礁壁，由水雾与光束逐层连接。</dd></dl>
+      <p class="shortcuts">空格：暂停 / 恢复　G：投喂　H：纯净观赏<br>系统开启“减少动态效果”时，初始为暂停。</p>
+      <button id="back-to-reef" class="back-button">回到珊瑚花园 <span>↗</span></button>
+    </dialog>
+    <noscript><p class="fallback">请启用 JavaScript 以欣赏动态海洋。</p></noscript>
+  </main>
+</body>
 </html>

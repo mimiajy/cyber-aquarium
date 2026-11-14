@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const productionPreview = process.argv.includes('--dist');
-const root = fileURLToPath(new URL(productionPreview ? './dist/' : '.', import.meta.url));
+const studyPreview = process.argv.includes('--study');
+const root = fileURLToPath(new URL(studyPreview ? './study-dist/' : productionPreview ? './dist/' : '.', import.meta.url));
 const port = Number(process.env.PORT || 5173);
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.md': 'text/plain; charset=utf-8' };
 
@@ -27,4 +28,4 @@ server.on('error', error => {
   console.error(error.code === 'EADDRINUSE' ? `端口 ${port} 已被占用，请使用 PORT=5174 npm start` : error.message);
   process.exitCode = 1;
 });
-server.listen(port, '127.0.0.1', () => console.log(`\n  Cyber Aquarium${productionPreview ? ' · dist 生产文件预览' : ''}\n  Local: http://127.0.0.1:${port}\n  按 Ctrl+C 停止预览\n`));
+server.listen(port, '127.0.0.1', () => console.log(`\n  Cyber Aquarium${studyPreview ? ' · study-dist 本地静态预览' : productionPreview ? ' · dist 生产文件预览' : ''}\n  Local: http://127.0.0.1:${port}\n  按 Ctrl+C 停止预览\n`));

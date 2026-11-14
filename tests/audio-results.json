@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "browser": "Safari on macOS",
+  "scope": "Actual OfflineAudioContext; default volume 35 percent",
+  "pass": true,
+  "sampleRate": 24000,
+  "duration": 28,
+  "peak": 0.10785388946533203,
+  "rms": 0.018593255646848085,
+  "maxSampleDelta": 0.0050372472032904625,
+  "waterWrapMaxDelta": 0.001096721738576889,
+  "clipping": false,
+  "fadeEndpoints": "silent",
+  "liveUI": "Gesture starts AudioContext and Safari audio indicator; volume 35 to 50; pause and immersion preserve audio; restore/mute/theme/feed/count controls checked",
+  "limits": "No physical mobile-device playback or subjective listening rating claimed"
+}

@@ -5,10 +5,27 @@
   'use strict';
   const O = globalThis.CyberAquarium;
   const { clamp, lerp, seeded, TAU } = O;
+  const ANEMONES = [[.26,.67,.072], [.45,.78,.06]];
+  const DIRECTIONS = Array.from({ length: 21 }, (_, k) => ({ cos: Math.cos(k / 21 * TAU), sin: Math.sin(k / 21 * TAU), phase: k * .41 }));
+  class GlowCache {
+    constructor(createCanvas) { this.createCanvas = createCanvas; this.sprites = new Map(); }
+    draw(ctx, x, y, radius, color, alpha) {
+      const key = color.join(',');
+      if (!this.sprites.has(key)) {
+        const sprite = this.createCanvas(256,256);
+        O.glow(sprite.getContext('2d'),128,128,128,color,1); this.sprites.set(key,sprite);
+      }
+      const old = ctx.globalAlpha;
+      ctx.globalAlpha = old * alpha;
+      ctx.drawImage(this.sprites.get(key), x-radius, y-radius, radius*2, radius*2);
+      ctx.globalAlpha = old;
+    }
+  }
   class Scene {
     constructor(images, width, height, createCanvas) {
       this.images = images; this.createCanvas = createCanvas;
       this.warp = new globalThis.SpriteWarp(createCanvas);
+      this.glows = new GlowCache(createCanvas); this.spriteCommands = []; this.sortedFish = [];
       this.time = 0; this.glow = .85; this.parallax = { x: 0, y: 0 };
       this.pointer = { x: 0, y: 0 }; this.food = []; this.sparks = [];
       this.lastFeed = -Infinity; this.fish = []; this.jellies = [];
@@ -32,10 +49,15 @@
       for (const f of this.food) { f.x *= sx; f.y *= sy; }
       this.sparks = [];
       this.placeJellies();
+      this.syncRenderOrder();
+      this.coralPatches = this.mobile
+        ? [{ x: width * .10, y: height * .83, width: width * .98, flip: 1, phase: 0, alpha: .9 }, { x: width * .91, y: height * .93, width: width * .97, flip: -1, phase: 2, alpha: .8 }]
+        : [{ x: width * .18, y: height * .79, width: width * .43, flip: 1, phase: 0, alpha: .86 }, { x: width * .86, y: height * .87, width: width * .43, flip: -1, phase: 2, alpha: .79 }];
       this.backdrop = this.makeBackdrop('neon');
       this.dayBackdrop = this.makeBackdrop('day');
     }
-    setCount(count) { return this.school.setCount(this, count); }
+    syncRenderOrder() { this.sortedFish = this.fish.slice().sort((a,b) => a.depth - b.depth); }
+    setCount(count) { const n = this.school.setCount(this, count); this.syncRenderOrder(); return n; }
     setTheme(theme, snap = false) {
       if (!['neon','day'].includes(theme)) return;
       this.theme = theme; if (snap) this.dayBlend = theme === 'day' ? 1 : 0;
@@ -43,10 +65,10 @@
     placeJellies() {
       const w = this.width, h = this.height;
       const mainH = this.mobile ? Math.min(h * .49, w * 1.02) : Math.min(h * .64, w * .43);
-      this.jellies = [
-        { x: w * (this.mobile ? .67 : .66), y: h * (this.mobile ? .44 : .43), height: mainH, size: mainH * .18, phase: 0 },
-        { x: w * (this.mobile ? .29 : .45), y: h * (this.mobile ? .39 : .32), height: mainH * .52, size: mainH * .095, phase: 2.6 },
-      ];
+      if (!this.jellies.length) this.jellies.push({},{});
+      const a = this.jellies[0], b = this.jellies[1];
+      a.x = w * (this.mobile ? .67 : .66); a.y = h * (this.mobile ? .44 : .43); a.height = mainH; a.size = mainH * .18; a.phase = 0;
+      b.x = w * (this.mobile ? .29 : .45); b.y = h * (this.mobile ? .39 : .32); b.height = mainH * .52; b.size = mainH * .095; b.phase = 2.6;
     }
     makeBackdrop(mode) {
       const w = this.width, h = this.height;
@@ -99,6 +121,7 @@
     }
     draw(ctx) {
       const w = this.width, h = this.height, t = this.time;
+      this.prepareSprites();
       ctx.save();
       ctx.drawImage(this.backdrop, -20 - this.parallax.x * 4, -20 - this.parallax.y * 2);
       if (this.dayBlend > .001) {
@@ -107,12 +130,12 @@
       this.drawRays(ctx);
       // Back jelly is smaller and dimmer; both are genuine animated objects.
       this.drawJelly(ctx, this.jellies[1], .65);
-      for (const fish of [...this.fish].sort((a, b) => a.depth - b.depth)) this.drawFish(ctx, fish);
+      for (const fish of this.sortedFish) this.drawFish(ctx, fish);
       this.drawJelly(ctx, this.jellies[0], 1);
       for (const f of this.food) {
         if (f.eaten) continue;
         ctx.globalAlpha = Math.min(1, f.life);
-        O.glow(ctx, f.x, f.y, 8, [239, 213, 156], .12);
+        this.glows.draw(ctx, f.x, f.y, 8, [239, 213, 156], .12);
         O.ellipse(ctx, f.x, f.y, 1.6, 2.0, '#e0d4a5');
       }
       ctx.globalAlpha = 1;
@@ -124,10 +147,30 @@
         const y = ((p.y * h - t * (2 + p.z * 4)) % h + h) % h;
         const a = (.09 + p.z * .17) * (.65 + Math.sin(t * .6 + p.phase) * .35);
         O.ellipse(ctx, x, y, p.big ? 1.5 : .5 + p.z * .5, p.big ? 1.9 : .5 + p.z * .5, `rgba(162,226,221,${a})`);
-        if (p.big) O.glow(ctx, x, y, 9, [106, 214, 208], .07);
+        if (p.big) this.glows.draw(ctx, x, y, 9, [106, 214, 208], .07);
       }
       for (const p of this.sparks) O.ellipse(ctx, p.x, p.y, 1.3 * p.life, 1.3 * p.life, `rgba(238,218,163,${p.life * .7})`);
       ctx.restore(); ctx.restore();
+    }
+    prepareSprites() {
+      if (this.sortedFish.length !== this.fish.length) this.syncRenderOrder();
+      let index = 0;
+      const put = (image, width, height, kind, phase, hungry, motion) => {
+        const c = this.spriteCommands[index] || (this.spriteCommands[index] = {});
+        c.image=image; c.width=width; c.height=height; c.kind=kind; c.time=this.time; c.phase=phase; c.hungry=hungry; c.motion=motion;
+        index++;
+      };
+      let j = this.jellies[1];
+      put(this.images.jellyfish, j.height*this.images.jellyfish.width/this.images.jellyfish.height,j.height,1,j.phase,false,undefined);
+      for (const f of this.sortedFish) {
+        const im=this.images[f.species.asset];
+        put(im,f.artWidth,f.artWidth*im.height/im.width,0,f.phase,f.hungry,f.motion);
+      }
+      j=this.jellies[0];
+      put(this.images.jellyfish,j.height*this.images.jellyfish.width/this.images.jellyfish.height,j.height,1,j.phase,false,undefined);
+      for (const p of this.coralPatches) put(this.images.coral,p.width,p.width*this.images.coral.height/this.images.coral.width,2,p.phase,false,undefined);
+      this.spriteCommands.length=index;
+      this.warp.prepare(this.spriteCommands);
     }
     drawFish(ctx, f) {
       const im = this.images[f.species.asset], width = f.artWidth, height = width * im.height / im.width;
@@ -143,20 +186,17 @@
       ctx.save(); ctx.translate(j.x + this.parallax.x * depth * 5, j.y + this.parallax.y * depth * 3);
       ctx.rotate(Math.sin(this.time * .27 + j.phase) * .055 + (depth < 1 ? -.11 : .08));
       const bellY = -height * .37;
-      O.glow(ctx, 0, bellY + width * .12, width * .49, [104, 208, 216], .10 * this.glow * depth);
+      this.glows.draw(ctx, 0, bellY + width * .12, width * .49, [104, 208, 216], .10 * this.glow * depth);
       ctx.globalAlpha = Math.min(1, (.7 + this.glow * .22) * depth);
       this.warp.draw(ctx, im, width, height, 1, this.time, j.phase);
       // Light is concentrated inside the bell, with no luminous outline pass.
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'screen';
-      O.glow(ctx, 0, bellY + width * .16, width * .24, [128, 219, 220], .055 * this.glow * depth);
+      this.glows.draw(ctx, 0, bellY + width * .16, width * .24, [128, 219, 220], .055 * this.glow * depth);
       ctx.restore();
     }
     drawCorals(ctx) {
       const w = this.width, h = this.height;
-      const patches = this.mobile
-        ? [{ x: w * .10, y: h * .83, width: w * .98, flip: 1, phase: 0, alpha: .9 }, { x: w * .91, y: h * .93, width: w * .97, flip: -1, phase: 2, alpha: .8 }]
-        : [{ x: w * .18, y: h * .79, width: w * .43, flip: 1, phase: 0, alpha: .86 }, { x: w * .86, y: h * .87, width: w * .43, flip: -1, phase: 2, alpha: .79 }];
-      for (const p of patches) {
+      for (const p of this.coralPatches) {
         const im = this.images.coral, height = p.width * im.height / im.width;
         ctx.save(); ctx.translate(p.x + this.parallax.x * 12, p.y + this.parallax.y * 7); ctx.scale(p.flip, 1);
         ctx.globalAlpha = p.alpha;
@@ -164,15 +204,15 @@
         // Soft-tissue tentacle strokes sit over the two painted anemones. Rigid
         // coral remains visually stable; only very fine ends catch the current.
         ctx.globalAlpha = .13;
-        for (const [cx, cy, radius] of [[.26,.67,.072], [.45,.78,.06]]) {
+        for (const [cx, cy, radius] of ANEMONES) {
           const x = (cx - .5) * p.width, y = (cy - .5) * height;
-          for (let k = 0; k < 21; k++) {
-            const angle = k / 21 * TAU, r = p.width * radius;
-            const sway = Math.sin(this.time * .7 + k * .41 + p.phase) * r * .11;
+          for (const d of DIRECTIONS) {
+            const r = p.width * radius;
+            const sway = Math.sin(this.time * .7 + d.phase + p.phase) * r * .11;
             ctx.beginPath(); ctx.moveTo(x, y);
-            ctx.bezierCurveTo(x + Math.cos(angle) * r * .5, y + Math.sin(angle) * r * .48,
-              x + Math.cos(angle) * r + sway, y + Math.sin(angle) * r * .8,
-              x + Math.cos(angle) * r * 1.1 + sway, y + Math.sin(angle) * r * .9 - r * .15);
+            ctx.bezierCurveTo(x + d.cos * r * .5, y + d.sin * r * .48,
+              x + d.cos * r + sway, y + d.sin * r * .8,
+              x + d.cos * r * 1.1 + sway, y + d.sin * r * .9 - r * .15);
             ctx.strokeStyle = '#a8ddd2'; ctx.lineWidth = Math.max(.6, p.width * .0013); ctx.lineCap = 'round'; ctx.stroke();
           }
         }

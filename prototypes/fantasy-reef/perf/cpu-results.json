@@ -1,0 +1,107 @@
+{
+  "measuredAt": "2026-11-14T16:13:20.687Z",
+  "backend": "Node v25.8.1; Apple M1; VM CPU simulation only",
+  "viewport": "1280x720 logical; no drawing in CPU timings",
+  "baselineCommit": "85180cd",
+  "samplesPerVersion": 7,
+  "stepsPerSample": 1200,
+  "cpu": [
+    {
+      "count": 10,
+      "beforeUpdateMs": 0.057566214999999754,
+      "afterUpdateMs": 0.03719944499999997,
+      "beforeSamples": [
+        0.05768187499999992,
+        0.05745111083333351,
+        0.05771690999999995,
+        0.05740663250000012,
+        0.05776708333333318,
+        0.057566214999999754,
+        0.05735020833333351
+      ],
+      "afterSamples": [
+        0.037358750000000024,
+        0.03719944499999997,
+        0.03710597249999978,
+        0.03729132000000012,
+        0.03720222250000006,
+        0.037131284166666396,
+        0.03710159750000003
+      ]
+    },
+    {
+      "count": 25,
+      "beforeUpdateMs": 0.23144250000000055,
+      "afterUpdateMs": 0.13088993083333283,
+      "beforeSamples": [
+        0.23186458333333348,
+        0.23089420166666666,
+        0.23173260416666647,
+        0.23061208333333374,
+        0.23106833333333346,
+        0.23144250000000055,
+        0.23342576416666663
+      ],
+      "afterSamples": [
+        0.1315482991666666,
+        0.13072440999999987,
+        0.13076305583333275,
+        0.13055006916666723,
+        0.13088993083333283,
+        0.13106524249999968,
+        0.13226152833333343
+      ]
+    },
+    {
+      "count": 50,
+      "beforeUpdateMs": 0.7556724308333332,
+      "afterUpdateMs": 0.38795138833333265,
+      "beforeSamples": [
+        0.7574352783333332,
+        0.7556724308333332,
+        0.758801076666667,
+        0.7537075000000004,
+        0.7548665283333336,
+        0.7558809025000013,
+        0.7529744091666665
+      ],
+      "afterSamples": [
+        0.38807191000000024,
+        0.3870852083333337,
+        0.3877727433333333,
+        0.38795138833333265,
+        0.3878357291666665,
+        0.38892496499999957,
+        0.4017992358333322
+      ]
+    }
+  ],
+  "clock": [
+    {
+      "syntheticRenderFPS": 60,
+      "oldDistance": 92.99999999999984,
+      "newDistance": 92.99999999999984,
+      "expectedDistance": 93
+    },
+    {
+      "syntheticRenderFPS": 30,
+      "oldDistance": 92.99999999999986,
+      "newDistance": 92.99999999999984,
+      "expectedDistance": 93
+    },
+    {
+      "syntheticRenderFPS": 20,
+      "oldDistance": 74.39999999999999,
+      "newDistance": 92.99999999999984,
+      "expectedDistance": 93
+    },
+    {
+      "syntheticRenderFPS": 10,
+      "oldDistance": 37.19999999999999,
+      "newDistance": 92.99999999999984,
+      "expectedDistance": 93
+    }
+  ],
+  "behavior": "Exact numeric equality across 10/25/50,1200 steps with feeding",
+  "browserFPS": "Not measured by this script. Use perf/index.html in a foreground browser."
+}

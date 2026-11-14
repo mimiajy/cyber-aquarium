@@ -7,9 +7,13 @@
     "start": "node server.mjs",
     "dev": "node server.mjs",
     "check": "node scripts/check.mjs",
+    "check:audio": "node scripts/check-audio.mjs",
+    "check:reef": "node prototypes/fantasy-reef/check-school.mjs && node prototypes/fantasy-reef/perf/check-render.mjs",
     "build": "node scripts/build.mjs",
     "check:dist": "node scripts/verify-dist.mjs",
-    "preview": "node server.mjs --dist"
+    "preview": "node server.mjs --dist",
+    "build:study": "node scripts/build-study.mjs",
+    "preview:study": "node server.mjs --study"
   },
   "engines": { "node": ">=18" }
 }

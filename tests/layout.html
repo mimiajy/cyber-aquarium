@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cyber Aquarium · 移动布局检查</title><style>body{background:#072435;color:#cce1dc;font:14px/1.8 system-ui;margin:20px}.frames{display:flex;gap:18px;flex-wrap:wrap}iframe{display:block;height:700px;border:1px solid #659995}pre{white-space:pre-wrap}</style></head><body><h1>移动布局检查 · 320 / 390px</h1><p>真实页面嵌入窄视口。只检查布局，不代表实体设备 FPS。</p><pre id="result">等待页面加载…</pre><div class="frames"><iframe width="320" title="320px 水族馆" src="../"></iframe><iframe width="390" title="390px 水族馆" src="../"></iframe></div><script>
+let loaded=0;const frames=[...document.querySelectorAll('iframe')];
+for(const frame of frames)frame.onload=()=>{if(++loaded!==frames.length)return;const results=frames.map(f=>{
+ const doc=f.contentDocument,w=f.contentWindow.innerWidth;
+ const controls=['.population-control','.sound-control','.controls'].map(selector=>{const box=doc.querySelector(selector).getBoundingClientRect();return{selector,left:box.left,right:box.right,inside:box.left>=0&&box.right<=w};});
+ return{width:w,musicDefaultMuted:doc.getElementById('music').getAttribute('aria-pressed')==='false',controls};
+});document.getElementById('result').textContent=JSON.stringify({pass:results.every(r=>r.musicDefaultMuted&&r.controls.every(c=>c.inside)),results},null,2);};
+</script></body></html>

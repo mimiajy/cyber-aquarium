@@ -2,13 +2,36 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const canvas = $('reef'), ctx = canvas.getContext('2d', { alpha: false });
+  const assetBase = new URL('assets/', document.currentScript.src);
   let scene, paused = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let frame = 0, last = 0, toastTimer, down = null, resizeTimer;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const images = {};
+  const clock=new ReefTiming.FrameStepper();
+  const updateScene=dt=>scene.update(dt);
+  const hud=new URLSearchParams(location.search).get('perf')==='1' ? ReefPerf.addHud(()=>({count:scene?.count,width:canvas.width,height:canvas.height,backend:scene?.warp.gl?'WebGL atlas':'Canvas fallback',epochs:scene?.warp.stats.sourceEpochs,clears:scene?.warp.stats.clears})) : null;
   const assetFiles = { fish: 'fish.png', tetra: 'tetra.png', angelfish: 'angelfish.png', jellyfish: 'jellyfish.png', coral: 'coral.png', depth: 'depth.png' };
   let settings = {};
   try { settings = JSON.parse(localStorage.getItem('fantasy-reef-settings')) || {}; } catch { /* Storage is optional. */ }
+  let soundVolume = .35;
+  try { const stored=localStorage.getItem('cyber-aquarium-audio-volume'); if(stored!==null&&Number.isFinite(Number(stored))) soundVolume=Number(stored); } catch { /* Optional preference. */ }
+  function syncSound(sound) {
+    $('music').setAttribute('aria-pressed',String(sound.playing));
+    $('music').setAttribute('aria-label',sound.playing?'关闭深海氛围音乐':'开启深海氛围音乐');
+    $('music-label').textContent=sound.playing?'氛围已开启':'开启氛围';
+    $('music-icon').textContent=sound.playing?'♫':'♪';
+    const percent=Math.round(sound.volume*100);
+    $('music-volume').value=percent; $('music-volume-output').textContent=`${percent}%`;
+    $('music-volume').setAttribute('aria-valuetext',`${percent}%`);
+    $('sound-status').textContent=sound.playing?'深海氛围已开启，独立于动画播放。':'音乐已关闭，点按开启。';
+  }
+  const sound = new ReefAudio.Soundscape({volume:soundVolume,onChange:syncSound,onError:error=>message(error.message)});
+  syncSound(sound);
+  $('music').addEventListener('click',()=>sound.toggle());
+  $('music-volume').addEventListener('input',event=>{
+    sound.setVolume(Number(event.target.value)/100);
+    try { localStorage.setItem('cyber-aquarium-audio-volume',String(sound.volume)); } catch { /* Optional preference. */ }
+  });
   function save() {
     if (!scene) return;
     try { localStorage.setItem('fantasy-reef-settings', JSON.stringify({ count: scene.count, theme: scene.theme, glow: scene.glow })); } catch { /* Private browsing still works. */ }
@@ -37,8 +60,13 @@
   function tick(now) {
     frame = 0;
     if (document.hidden || paused || !scene) return;
-    const dt = Math.min(.04, Math.max(.001, (now - last) / 1000 || 1 / 60)); last = now;
-    scene.update(dt); draw(); frame = requestAnimationFrame(tick);
+    const elapsed=Math.max(0,(now-last)/1000); last=now;
+    const start=hud?performance.now():0, before=clock.simulated, dropped=clock.dropped;
+    const steps=clock.advance(elapsed,updateScene);
+    const updated=hud?performance.now():0;
+    draw();
+    if(hud)hud.rec.record(elapsed*1000,updated-start,performance.now()-updated,steps,(clock.simulated-before)*1000,(clock.dropped-dropped)*1000);
+    frame = requestAnimationFrame(tick);
   }
   function run() {
     if (!paused && !document.hidden && scene && !frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
@@ -105,7 +133,7 @@
     const image = new Image();
     image.onload = () => { images[key] = image; resolve(); };
     image.onerror = () => reject(new Error(`无法加载 assets/${file}`));
-    image.src = `assets/${file}`;
+    image.src = new URL(file, assetBase).href;
   }))).then(() => {
     if (!ctx) throw new Error('浏览器未能创建 Canvas 2D 画布');
     scene = new FantasyReef.Scene(images, innerWidth, innerHeight, (w, h) => {
@@ -118,7 +146,7 @@
     resize(); syncPopulation(); setPaused(paused); setTheme(scene.theme); $('loading').classList.add('is-ready');
     setTimeout(() => { $('loading').hidden = true; }, 700);
     // Read-only access helps local inspection without changing production globals.
-    window.reefStudy = { get scene() { return scene; }, get paused() { return paused; } };
+    window.reefStudy = { get scene() { return scene; }, get paused() { return paused; }, get sound() { return sound; } };
   }).catch(error => {
     $('loading-label').textContent = `${error.message}。请从项目根目录运行 npm start 后打开样板链接。`;
     document.querySelector('.loading-orb').hidden = true;

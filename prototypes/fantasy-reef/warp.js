@@ -59,8 +59,10 @@
   class SpriteWarp {
     constructor(createCanvas) {
       this.canvas = createCanvas(1024, 1024); this.gl = null; this.textures = new Map();
+      this.groups = new Map(); this.prepared = false; this.cursor = 0;
+      this.stats = { draws: 0, sourceEpochs: 0, clears: 0, copies: 0 };
       try {
-        const gl = this.canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, preserveDrawingBuffer: true, depth: false, stencil: false });
+        const gl = this.canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, preserveDrawingBuffer: false, depth: false, stencil: false });
         if (!gl) return;
         this.gl = gl;
         const compile = (kind, code) => {
@@ -88,6 +90,76 @@
         this.canvas.addEventListener?.('webglcontextlost', event => { event.preventDefault(); this.gl = null; });
       } catch { this.gl = null; }
     }
+    texture(image) {
+      const gl = this.gl;
+      if (!this.textures.has(image)) {
+        const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        this.textures.set(image, texture);
+      }
+      return this.textures.get(image);
+    }
+    prepare(commands) {
+      this.prepared = false; this.cursor = 0;
+      this.stats.draws = this.stats.copies = this.stats.clears = this.stats.sourceEpochs = 0;
+      const gl = this.gl;
+      if (!gl || gl.isContextLost()) return;
+      let changed = this.commands !== commands || this.commandCount !== commands.length;
+      let area = 0;
+      for (const c of commands) {
+        const tw = c.width + 32, th = c.height + 32;
+        const density = Math.min(1.5, 1024 / Math.max(tw, th));
+        const rw = Math.max(1, Math.ceil(tw * density)), rh = Math.max(1, Math.ceil(th * density));
+        if (c.rw !== rw || c.rh !== rh) changed = true;
+        c.tw = tw; c.th = th; c.rw = rw; c.rh = rh; area += rw * rh;
+      }
+      if (changed) {
+        // Pack independent tiles by height. Their resolution and the shader's
+        // coordinate system are identical to the former per-sprite framebuffer.
+        const maxSize = Math.min(4096, gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+        const width = Math.min(maxSize, Math.max(1024, 2 ** Math.ceil(Math.log2(Math.sqrt(area * 1.25)))));
+        let x = 0, y = 0, row = 0;
+        for (const c of commands.slice().sort((a,b) => b.rh - a.rh)) {
+          if (x + c.rw > width) { x = 0; y += row; row = 0; }
+          c.sx = x; c.sy = y; x += c.rw; row = Math.max(row, c.rh);
+        }
+        const height = Math.max(64, Math.ceil((y + row) / 64) * 64);
+        if (height > maxSize) return; // Rare oversized scene: retain legacy path.
+        if (this.canvas.width !== width) this.canvas.width = width;
+        if (this.canvas.height !== height) this.canvas.height = height;
+      }
+      this.commands = commands; this.commandCount = commands.length;
+      for (const group of this.groups.values()) group.length = 0;
+      for (const c of commands) {
+        if (!this.groups.has(c.image)) this.groups.set(c.image, []);
+        this.groups.get(c.image).push(c);
+      }
+      gl.disable(gl.SCISSOR_TEST); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.SCISSOR_TEST); this.stats.clears = 1;
+      for (const [image, group] of this.groups) {
+        if (!group.length) continue;
+        gl.bindTexture(gl.TEXTURE_2D, this.texture(image));
+        for (const c of group) {
+          const y = this.canvas.height - c.sy - c.rh;
+          gl.viewport(c.sx, y, c.rw, c.rh); gl.scissor(c.sx, y, c.rw, c.rh);
+          this.uniformsFor(c.width, c.height, c.kind, c.time, c.phase, c.hungry, c.motion);
+          gl.drawElements(gl.TRIANGLES, this.count, gl.UNSIGNED_SHORT, 0); this.stats.draws++;
+        }
+      }
+      this.stats.sourceEpochs = 1;
+      this.prepared = true;
+    }
+    uniformsFor(width, height, kind, time, phase, hungry, motion = {}) {
+      const gl = this.gl;
+      gl.uniform2f(this.uniforms.size, width, height); gl.uniform2f(this.uniforms.target, width + 32, height + 32);
+      gl.uniform1f(this.uniforms.time, time); gl.uniform1f(this.uniforms.phase, phase);
+      gl.uniform1f(this.uniforms.kind, kind); gl.uniform1f(this.uniforms.hungry, hungry ? 1 : 0);
+      gl.uniform1f(this.uniforms.swimBeat, motion.beat ?? time * (hungry ? 7.5 : 4.8));
+      gl.uniform1f(this.uniforms.tailPower, motion.tail ?? 1); gl.uniform1f(this.uniforms.finPower, motion.fins ?? 0);
+      gl.uniform1f(this.uniforms.fishProfile, motion.profile ?? 0);
+    }
     draw(ctx, image, width, height, kind, time, phase, hungry = false, motion = {}) {
       const gl = this.gl;
       if (!gl || gl.isContextLost()) {
@@ -109,27 +181,22 @@
         ctx.drawImage(image, -width * breath * .5, -height * .5, width * breath, height);
         return;
       }
-      if (!this.textures.has(image)) {
-        const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        this.textures.set(image, texture);
+      if (this.prepared) {
+        const c = this.commands[this.cursor++];
+        ctx.drawImage(this.canvas, c.sx, c.sy, c.rw, c.rh, -c.tw * .5, -c.th * .5, c.tw, c.th);
+        this.stats.copies++;
+        return;
       }
-      gl.bindTexture(gl.TEXTURE_2D, this.textures.get(image));
+      gl.bindTexture(gl.TEXTURE_2D, this.texture(image));
       const tw = width + 32, th = height + 32;
       const density = Math.min(1.5, 1024 / Math.max(tw, th));
       const rw = Math.max(1, Math.ceil(tw * density)), rh = Math.max(1, Math.ceil(th * density));
       gl.viewport(0, 0, rw, rh); gl.enable(gl.SCISSOR_TEST); gl.scissor(0, 0, rw, rh);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.uniform2f(this.uniforms.size, width, height); gl.uniform2f(this.uniforms.target, tw, th);
-      gl.uniform1f(this.uniforms.time, time); gl.uniform1f(this.uniforms.phase, phase);
-      gl.uniform1f(this.uniforms.kind, kind); gl.uniform1f(this.uniforms.hungry, hungry ? 1 : 0);
-      gl.uniform1f(this.uniforms.swimBeat, motion.beat ?? time * (hungry ? 7.5 : 4.8));
-      gl.uniform1f(this.uniforms.tailPower, motion.tail ?? 1); gl.uniform1f(this.uniforms.finPower, motion.fins ?? 0);
-      gl.uniform1f(this.uniforms.fishProfile, motion.profile ?? 0);
+      this.uniformsFor(width, height, kind, time, phase, hungry, motion);
       gl.drawElements(gl.TRIANGLES, this.count, gl.UNSIGNED_SHORT, 0);
-      ctx.drawImage(this.canvas, 0, 1024 - rh, rw, rh, -tw * .5, -th * .5, tw, th);
+      ctx.drawImage(this.canvas, 0, this.canvas.height - rh, rw, rh, -tw * .5, -th * .5, tw, th);
+      this.stats.draws++; this.stats.clears++; this.stats.sourceEpochs++; this.stats.copies++;
     }
   }
   globalThis.SpriteWarp = SpriteWarp;

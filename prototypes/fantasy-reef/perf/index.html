@@ -1,0 +1,10 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cyber Aquarium · 本地性能对比</title><style>
+:root{color-scheme:dark;font:14px/1.8 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:#c9e2df;background:#071e30}body{max-width:1280px;margin:24px auto;padding:0 20px}h1{font-size:24px;font-weight:450}p{color:#9cbec7}button{background:#b7d5c4;border:0;border-radius:8px;padding:10px 17px;color:#163342;cursor:pointer;margin:0 10px 10px 0;font:inherit}button:disabled{opacity:.45;cursor:default}a{color:#b2ded6}iframe{width:100%;aspect-ratio:16/9;border:1px solid #345363;border-radius:12px;background:#082437;display:block}table{width:100%;border-collapse:collapse;font-size:12px;margin:20px 0}td,th{text-align:left;padding:8px;border-bottom:1px solid #284655}#status{padding:9px 0;color:#c2ded3}.scroll{overflow-x:auto}small{color:#93b2bd}code{color:#c9dfd5}pre{white-space:pre-wrap;font-size:10px;max-height:240px;overflow:auto}
+</style><script defer src="compare.js"></script></head><body><h1>Cyber Aquarium · 同条件性能对比</h1>
+<p>对照：提交 85180cd 的原始场景，与本地优化后的场景。每组固定逻辑分辨率 1280×720、像素密度 1.5，画布 1920×1080。保留六种素材、全部生物、珊瑚、粒子与形变。</p>
+<button id="start">开始 10 / 25 / 50 条鱼对比</button><button id="download" disabled>下载测量 JSON</button><a href="../index.html?perf=1">打开实际页面 FPS 面板</a>
+<p><small>请把此标签页留在前台约 90 秒，不切换窗口。每组预热 3 秒、测量 12 秒。50 条仅为压力测试，正常数量滑块保持 10–30。切到后台将使本组数据无效，避免把暂停当成低帧率。此表测量场景内核；实际页面面板还包含界面合成开销。</small></p>
+<div id="status" role="status">尚未测量。只有真实的前台 requestAnimationFrame 才会产生 FPS 数据。</div><iframe id="runner" title="同条件动态海底性能测试"></iframe>
+<div class="scroll"><table><thead><tr><th>版本 / 鱼数</th><th>FPS</th><th>帧均值 / p95</th><th>更新 ms</th><th>绘制提交 ms</th><th>时间推进</th><th>GPU→2D 同步批次</th></tr></thead><tbody id="results"></tbody></table></div>
+<details><summary>测量说明和原始数据</summary><p>FPS 来自真实帧间隔，p95 为帧间隔第 95 百分位。绘制提交耗时包含主线程调用与可能的同步等待，不是独立 GPU 执行时长。Node 行为耗时不能代替这些数据。测试不降低 DPI、不减少鱼或环境元素，不使用 gl.finish 强制同步。</p><pre id="raw"></pre></details>
+</body></html>

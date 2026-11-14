@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cyber Aquarium · 音频验证</title>
+<style>body{font:16px/1.8 system-ui;background:#072435;color:#cce1dc;margin:40px}button{padding:12px 20px}pre{white-space:pre-wrap}</style>
+<script defer src="../prototypes/fantasy-reef/audio.js"></script></head><body><h1>Web Audio 离线 DSP 验证</h1><p>渲染 28 秒原创音轨，检查淡入淡出、峰值、有效音量与水流循环边界。不会连接扬声器，不请求麦克风。</p><button id="run">验证音轨</button><pre id="result">尚未测量</pre><script>
+document.getElementById('run').onclick=async()=>{
+ const result=document.getElementById('result');result.textContent='正在实际渲染音频…';
+ try{
+  const Audio=window.OfflineAudioContext||window.webkitOfflineAudioContext,rate=24000,seconds=28;
+  const context=new Audio(2,rate*seconds,rate),graph=ReefAudio.buildGraph(context);
+  graph.master.gain.setValueAtTime(0,0);graph.master.gain.linearRampToValueAtTime(.35*.55,2.4);
+  graph.master.gain.setValueAtTime(.35*.55,26);graph.master.gain.linearRampToValueAtTime(0,27.6);
+  const buffer=await context.startRendering();let peak=0,energy=0,delta=0,loopDelta=0;
+  for(let ch=0;ch<2;ch++){const data=buffer.getChannelData(ch);for(let i=0;i<data.length;i++){if(!Number.isFinite(data[i]))throw Error('Non-finite sample');peak=Math.max(peak,Math.abs(data[i]));energy+=data[i]*data[i];if(i){const d=Math.abs(data[i]-data[i-1]);delta=Math.max(delta,d);if(Math.abs(i-rate*24)<20)loopDelta=Math.max(loopDelta,d);}}
+   if(Math.abs(data[0])>.0001||Math.abs(data.at(-1))>.0001)throw Error('Fade endpoints');
+  }
+  const rms=Math.sqrt(energy/(rate*seconds*2));if(peak>=.95||rms<.0001||loopDelta>.03)throw Error('Output bounds');
+  result.textContent=JSON.stringify({pass:true,backend:'Actual OfflineAudioContext',sampleRate:rate,duration:seconds,peak,rms,maxSampleDelta:delta,waterWrapMaxDelta:loopDelta,clipping:false,fadeEndpoints:'silent'},null,2);
+ }catch(error){result.textContent='验证失败：'+error.message;}
+};
+</script></body></html>

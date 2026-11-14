@@ -11,6 +11,17 @@
     angel: { name: '长鳍神仙鱼', asset: 'angelfish', width: 117, speed: 22, turn: .78, radius: 130, cohesion: .025, alignment: .17, spacing: .55, range: [.35,.77], beat: 2.8, fins: 1.5, tail: .55, profile: 2 },
   };
   const composition = ['tetra','tetra','reef','tetra','reef','angel','tetra','reef','tetra','angel'];
+  const CENTER_X = [.23,.53,.78];
+  function shoalCenters(world, centers) {
+    if (centers.time === world.time && centers.width === world.width && centers.height === world.height) return centers;
+    for (let i=0;i<3;i++) {
+      const c=centers[i] || (centers[i]={});
+      c.x=world.width*(CENTER_X[i]+Math.sin(world.time*.105+i*2)*.12);
+      c.y=world.height*(.46+Math.sin(world.time*.14+i*2.2)*.15);
+    }
+    centers.time=world.time; centers.width=world.width; centers.height=world.height;
+    return centers;
+  }
 
   class SchoolFish {
     constructor(id, kind, world, slot) {
@@ -19,6 +30,7 @@
       this.phase = rng() * TAU; this.depth = [.24,.62,.86][slot % 3] + (rng() - .5) * .10;
       this.individualSize = .88 + rng() * .23; this.speedVariation = .86 + rng() * .25;
       this.group = slot % 3; this.beat = 0; this.turnRate = 0; this.hungry = false; this.target = null;
+      this.motion = { beat:0, tail:0, fins:this.species.fins, profile:this.species.profile }; this.centers=[];
       this.heading = (slot % 3 === 0 ? Math.PI : 0) + (rng() - .5) * .32;
       this.resize(world);
       // Several small shoals across both dimensions, never a central spawn pile.
@@ -45,19 +57,23 @@
       this.angle = Math.atan2(this.vy, Math.abs(this.vx) + this.cruise * .8) * this.yaw;
       this.bank = this.turnRate * .07 * this.yaw;
       this.opacity = lerp(.42, .84, this.depth);
-      this.motion = { beat: this.beat, tail: this.species.tail * (.72 + this.speed / this.cruise * .3), fins: this.species.fins, profile: this.species.profile };
+      this.motion.beat=this.beat;
+      this.motion.tail=this.species.tail * (.72 + this.speed / this.cruise * .3);
     }
     update(dt, world, neighbors) {
       const s = this.species, w = world.width, h = world.height;
+      const perceptionSquared=this.perception*this.perception;
       let ax = 0, ay = 0, weight = 0, cx = 0, cy = 0, avx = 0, avy = 0;
       const breath = .58 + .42 * Math.sin(world.time * .15 + this.group * 2.1);
       for (const other of neighbors) {
         if (other.id === this.id) continue;
         let dx = this.x - other.x, dy = this.y - other.y;
+        const space = (this.artWidth + other.artWidth) * s.spacing * .5 + 6;
+        const distanceSquared=dx*dx+dy*dy;
+        if(distanceSquared>perceptionSquared && distanceSquared>space*space) continue;
         let d = Math.hypot(dx, dy);
         if (d < .01) { dx = this.id < other.id ? -.01 : .01; dy = 0; d = .01; }
         const depthWeight = Math.max(.15, 1 - Math.abs(this.depth - other.depth) * .9);
-        const space = (this.artWidth + other.artWidth) * s.spacing * .5 + 6;
         if (d < space) {
           const force = (1 - d / space) ** 2 * 100 * depthWeight;
           ax += dx / d * force; ay += dy / d * force;
@@ -94,7 +110,7 @@
         if (this.kind === 'tetra') {
           // Roaming shoal centers overlap and drift apart. Social forces may
           // transfer fish between nearby groups; these are weak currents, not rails.
-          const centers = [0,1,2].map(i => ({ x: w * ([.23,.53,.78][i] + Math.sin(world.time * .105 + i * 2) * .12), y: h * (.46 + Math.sin(world.time * .14 + i * 2.2) * .15) }));
+          const centers = world.school ? world.school.centers : shoalCenters(world,this.centers);
           const current = centers[this.group];
           const ownDist = Math.hypot(current.x - this.x, current.y - this.y);
           for (let i = 0; i < centers.length; i++) {
@@ -146,7 +162,7 @@
   }
 
   class School {
-    constructor() { this.nextId = 0; this.neighbors = []; }
+    constructor() { this.nextId = 0; this.neighbors = []; this.centers=[]; }
     setCount(world, count) {
       const n = clamp(Math.round(Number(count) || 18), 10, 30);
       while (world.fish.length < n) {
@@ -157,10 +173,11 @@
       return n;
     }
     update(world, dt) {
+      shoalCenters(world,this.centers);
       this.neighbors.length = world.fish.length;
       for (let i = 0; i < world.fish.length; i++) {
         const f = world.fish[i], n = this.neighbors[i] || (this.neighbors[i] = {});
-        for (const key of ['id','kind','x','y','vx','vy','depth','artWidth']) n[key] = f[key];
+        n.id=f.id; n.kind=f.kind; n.x=f.x; n.y=f.y; n.vx=f.vx; n.vy=f.vy; n.depth=f.depth; n.artWidth=f.artWidth;
       }
       for (const fish of world.fish) fish.update(dt, world, this.neighbors);
     }

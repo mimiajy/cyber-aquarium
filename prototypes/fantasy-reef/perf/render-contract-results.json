@@ -1,0 +1,83 @@
+{
+  "scope": "Mock call contract; not GPU timing or FPS",
+  "results": [
+    {
+      "width": 1280,
+      "height": 720,
+      "count": 10,
+      "beforeSourceEpochs": 14,
+      "afterSourceEpochs": 1,
+      "beforeClears": 14,
+      "afterClears": 1,
+      "draws": 14,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x1472"
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "count": 25,
+      "beforeSourceEpochs": 29,
+      "afterSourceEpochs": 1,
+      "beforeClears": 29,
+      "afterClears": 1,
+      "draws": 29,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x1600"
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "count": 50,
+      "beforeSourceEpochs": 54,
+      "afterSourceEpochs": 1,
+      "beforeClears": 54,
+      "afterClears": 1,
+      "draws": 54,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x1856"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "count": 10,
+      "beforeSourceEpochs": 14,
+      "afterSourceEpochs": 1,
+      "beforeClears": 14,
+      "afterClears": 1,
+      "draws": 14,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x768"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "count": 25,
+      "beforeSourceEpochs": 29,
+      "afterSourceEpochs": 1,
+      "beforeClears": 29,
+      "afterClears": 1,
+      "draws": 29,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x896"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "count": 50,
+      "beforeSourceEpochs": 54,
+      "afterSourceEpochs": 1,
+      "beforeClears": 54,
+      "afterClears": 1,
+      "draws": 54,
+      "beforeRadialGradients": 10,
+      "afterRadialGradients": 0,
+      "atlas": "2048x1024"
+    }
+  ]
+}

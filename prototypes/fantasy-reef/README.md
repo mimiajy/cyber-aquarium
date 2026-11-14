@@ -1,8 +1,10 @@
 # Fantasy Reef — 美术视觉样板 02
 
+> **当前状态（2026-11-15）**：本目录已接入项目正式首页，旧 index.html 自动跳转根页面并保留查询参数。以下为样板及优化阶段的历史记录；当前使用方式与发布范围以根 [README](../../README.md) 和 [DEPLOY](../../DEPLOY.md) 为准。`npm start` 后直接访问 http://127.0.0.1:5173/。原创音乐说明见 [AUDIO](../../AUDIO.md)。默认 `npm run build` 现已打包本目录的运行脚本、样式与六张素材；性能基线、QA 图和旧样板不打包。
+
 方向：**Stylized Semi-Realistic Underwater Fantasy Art**，风格化半写实奇幻海洋。
 
-这是独立的本地美术样板，未接入正式页面、生产构建或 GitHub Pages。没有 Commit 或 Push。正式 HTML、CSS、JS、资源与部署配置均未修改。
+这是独立的本地美术样板，未接入正式页面或 GitHub Pages。上一轮美术与鱼群升级已保存在本地提交 `85180cd`；本轮性能修改尚未提交或推送。默认 Pages 构建仍只生成原正式页面。
 
 ## 打开动态样板
 
@@ -42,7 +44,9 @@ npm start
 
 `fish-school.js` 在 V1 Boids 的基础上实现分鱼种的聚合、速度对齐、分离、追食与平滑转向；正式项目原 Fish 类保持原样。`scene.js` 接入新行为与绘画素材。`warp.js` 将素材绑定到 40×56 网格，身体、尾鳍、长鳍分别协调变化。水母与珊瑚的原位移分支保持不变。GPU 不可用时降级为 Canvas 尾/鳍摆动及水母整体漂浮/呼吸，细节形变会减少。
 
-静态背景缓存在离屏画布；纹理仅上传一次并复用；WebGL 表面固定 1024×1024，并只清理当前贴图所用区域。主画布像素密度上限桌面 1.5 / 窄屏 1.4。没有新增项目依赖或 API 请求。六张素材合计约 9.9 MiB，首次本地加载后在浏览器内绘制。
+静态背景、光晕缓存在离屏画布；纹理仅上传一次并复用。每帧先将全部形变贴图绘制到同一动态图集，再按原来的层次合成，避免逐条鱼交错写入 WebGL、读取 Canvas。图集按原贴图像素密度装箱，超限时保留原逐张绘制路径；形变着色器与 40×56 网格不变。主画布像素密度上限仍为桌面 1.5 / 窄屏 1.4。没有新增项目依赖或 API 请求。六张素材合计约 9.9 MiB，首次本地加载后在浏览器内绘制。
+
+动画按真实帧间隔推进，并拆为不超过约 1/60 秒的小步；普通掉帧不再受原 40ms 上限影响而慢放。仅极端单帧超过 250ms 时保护性截断，后台与暂停时间不推进。鱼种游速、转向、追食和社交参数不变。
 
 ## 素材与验证
 
@@ -52,7 +56,7 @@ npm start
 - 三种鱼、两只水母、10/18/30 总量持续模拟与追食消耗检查通过。
 - Safari 已加载并检查实际完整场景、连续纹理边缘、暂停/恢复、投喂提示、美术说明与纯净观赏。
 - 1440×900 和 390×844 的 Canvas 降级场景渲染已检查，位于 `qa/*-fallback.png`；这些是降级渲染帧，不是 Safari 截图，也不证明移动设备帧率。
-- 自动化控制下 Safari 把标签页报告为后台状态，前台连续动画帧率未测量。请将样板标签页置于前台判断实际动态观感。
+- Safari 前台六组同条件对照已完成：10/25/50 鱼由 24.27/11.99/6.47FPS 提升至约 60FPS，每组采样约 12 秒。完整页面另读到 30 鱼约 60FPS；不代表所有设备或长时间负载。详见性能报告与 `perf/browser-results.json`。
 
 正式生产构建只收集根目录 `index.html`、`css/`、`js/`、`assets/`，因此本目录不在现有线上产物中。扩展到正式项目前，等待用户判断美术方向。
 
@@ -61,3 +65,21 @@ npm start
 历史对比、恢复内容与验证结果见 [FISH_BEHAVIOR_REVIEW.md](FISH_BEHAVIOR_REVIEW.md)。从项目根目录运行 `node prototypes/fantasy-reef/check-school.mjs` 可复查行为。
 
 最新场景降级渲染帧为 `qa/school-*.png`；原有 `*-fallback.png` 保留为上一轮三鱼美术样板记录。
+
+## 性能检查与本地静态构建
+
+详细分析、实测范围与限制见 [PERFORMANCE_REVIEW.md](PERFORMANCE_REVIEW.md)。
+
+- 实际页面实时 FPS / p95 面板：[index.html?perf=1](http://127.0.0.1:5173/prototypes/fantasy-reef/index.html?perf=1)。正常打开不显示面板。
+- 优化前后 10 / 25 / 50 条鱼的同条件浏览器测试：[perf/index.html](http://127.0.0.1:5173/prototypes/fantasy-reef/perf/index.html)。点击开始后保持前台约 90 秒，可下载原始 JSON。50 条仅为压力测试，不改变正常滑块上限。
+- `node prototypes/fantasy-reef/perf/check-perf.mjs`：数值轨迹、时间推进与 CPU 更新耗时对比；不测浏览器 FPS。
+- `node prototypes/fantasy-reef/perf/check-render.mjs`：原着色器、分辨率、调用顺序与图集边界检查；不测 GPU 时长。
+
+本地开发仍用 `npm start`。如需在纯静态产物中重复测试：
+
+```bash
+npm run build:study
+PORT=5174 npm run preview:study
+```
+
+访问 `http://127.0.0.1:5174/prototypes/fantasy-reef/perf/index.html`。`study-dist/` 仅为忽略的本地产物，运行文件与源文件逐字节一致；没有 Vite/HMR、开发版框架或构建替换带来的性能差异。原 `npm run build`、`dist/` 和自动部署配置保持原样，不会因此发布新样板。

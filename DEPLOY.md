@@ -1,6 +1,6 @@
 # GitHub Pages 部署
 
-项目为纯静态 HTML / CSS / JavaScript / p5.js，无后端、付费 API、运行时外部资源或 npm 依赖。构建不修改视觉设计、绘制算法或交互代码。此前的 Netlify 专用配置已移除。
+项目为纯静态 HTML / CSS / JavaScript / Canvas 2D / WebGL，无后端、付费 API、运行时外部资源或 npm 依赖。构建按清单逐字节复制最新场景，不改写绘制算法。此前的 Netlify 专用配置已移除。
 
 ## 本地使用
 
@@ -33,7 +33,7 @@
 
 ## 子路径兼容
 
-所有运行资源均使用相对路径：css/、js/、assets/。首页链接为 ./；SVG symbol 使用 #id。没有写死域名、根路径 /assets 或 localhost。
+页面运行资源均使用相对路径。当前场景位于 prototypes/fantasy-reef/，图像地址相对 app.js 的实际 URL 解析；首页链接为 ./。音乐由本地 Web Audio 合成，无额外音频文件 URL。没有写死运行域名、根路径 /assets 或 localhost。
 
 构建检查同时按网站根目录 / 和项目子路径 /cyber-aquarium/ 解析全部静态引用，防止资源意外指向用户名站点的根目录。dist 内包含 .nojekyll，使用 Actions 直接发布产物，不通过 Jekyll 转换。
 
@@ -45,6 +45,12 @@
 
 如某次工作流失败，查看 Actions 的失败步骤；可由 Codex修复并重新推送。不要强制覆盖远端历史。
 
-主题和数量偏好使用浏览器 localStorage；本机地址与线上域名分别保存设置。没有购买服务器、配置后端或使用 Netlify 的步骤。
+主题、数量和音量偏好使用浏览器 localStorage；每次打开音乐仍默认关闭。本机地址与线上域名分别保存设置。没有购买服务器、配置后端或使用 Netlify 的步骤。
 
 参考：[GitHub Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
+
+## 当前发布范围
+
+根 index.html 是唯一正式页面，接入最新半写实画风、三鱼种、动态图集性能优化与原创环境音乐。运行清单位于 scripts/runtime-files.mjs；默认构建不再发布早期 V1。历史代码和 Git 历史保留。
+
+构建自动运行既有检查、当前鱼群、渲染与音频回归测试。npm run build:study 仍可生成本地测试产物，但 study-dist 不参与 Pages 部署。tests/、perf/、QA 图、提示词和凭据不进入正式站点产物。

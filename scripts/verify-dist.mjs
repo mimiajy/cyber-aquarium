@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runtimeFiles,artAssets,reefDirectory } from './runtime-files.mjs';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export const dist = path.join(root, 'dist');
@@ -22,7 +23,7 @@ async function walk(directory, prefix = '') {
 
 export async function verifyDist() {
   const files = await walk(dist);
-  const sourceFiles = ['index.html', ...await walk(path.join(root, 'css'), 'css'), ...await walk(path.join(root, 'js'), 'js'), ...await walk(path.join(root, 'assets'), 'assets')].filter(file => path.basename(file) !== '.DS_Store').sort();
+  const sourceFiles = runtimeFiles.slice().sort();
   assert.deepEqual(files, [...sourceFiles, '.nojekyll'].sort(), 'Only runtime files and the Pages marker belong in dist');
   const manifest = [];
   for (const file of files) {
@@ -58,9 +59,17 @@ export async function verifyDist() {
   }
   // App code uses only in-browser state; the bundled general-purpose p5 library
   // contains unused network helpers, so audit the app rather than its entire API.
-  for (const file of sourceFiles.filter(f => f.startsWith('js/'))) {
+  for (const file of sourceFiles.filter(f => f.endsWith('.js'))) {
     const source = await readFile(path.join(dist, file), 'utf8');
     assert.doesNotMatch(source, /\b(?:fetch|loadImage|loadFont|loadJSON|loadSound|loadStrings|httpGet|httpPost)\s*\(|\b(?:XMLHttpRequest|WebSocket|EventSource)\b|(?:localhost|127\.0\.0\.1)(?=[:/"'])/, `Review network dependency in ${file}`);
+  }
+  // Image URLs are resolved relative to app.js, not the page pathname.
+  for(const base of testedBases)for(const name of artAssets){
+    const script=new URL(`${reefDirectory}/app.js`,`https://static.example${base}`);
+    const asset=new URL(`assets/${name}.png`,script);
+    assert.ok(asset.pathname.startsWith(base));
+    assert.ok((await stat(path.join(dist,asset.pathname.slice(base.length)))).isFile(),asset.href);
+    references++;
   }
   return { files: manifest, references, testedBases, totalBytes: manifest.reduce((sum, f) => sum + f.bytes, 0) };
 }
