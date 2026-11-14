@@ -2,6 +2,8 @@
 
 **A little ocean. A little peace.** 一方属于你的梦幻海洋。
 
+[打开 Cyber Aquarium](https://mimiajy.github.io/cyber-aquarium/) · [源码仓库](https://github.com/mimiajy/cyber-aquarium) · [自动部署状态](https://github.com/mimiajy/cyber-aquarium/actions/workflows/deploy-pages.yml)
+
 纯 HTML、CSS、JavaScript 和本地 p5.js 实现。无需后端、付费 API、构建工具或 npm 依赖，运行时没有外部网络请求。
 
 ## 在 VS Code 启动

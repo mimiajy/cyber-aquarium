@@ -11,22 +11,14 @@
 
 无需 npm install。请修改源文件，不要直接编辑 dist；dist 和 build-report.json 不提交到仓库。
 
-## 首次发布
+## 已部署站点
 
-公开仓库前先核对 PUBLICATION_REVIEW.md 中的本地检查记录，并取得用户确认。该记录及 STATUS.md 不会提交。
+- 仓库：https://github.com/mimiajy/cyber-aquarium
+- 网站：https://mimiajy.github.io/cyber-aquarium/
+- 自动部署：https://github.com/mimiajy/cyber-aquarium/actions/workflows/deploy-pages.yml
+- 主分支：main；Pages 发布源：GitHub Actions。
 
-确认后由 Codex 完成：
-
-1. 使用已登录的 GitHub 身份核对同名仓库；不存在时创建公开仓库 cyber-aquarium，不覆盖已有远程内容。
-2. 为当前项目设置 origin，并以 main 作为主分支。首次提交前再次检查待提交文件。
-3. 将提交身份设为 GitHub noreply 邮箱，避免公开本机 Git 配置中的私人邮箱。
-4. 启用仓库 Settings → Pages → Build and deployment → Source: GitHub Actions（或通过 GitHub API 完成对应设置）。
-5. 提交并推送 main，检查 Actions 的 Deploy Cyber Aquarium to GitHub Pages 工作流。
-6. 工作流成功后，从部署输出取得实际 Pages URL 并检查线上 HTML 与资源响应。
-
-如本机尚未登录，Codex 可启动官方 GitHub CLI 的网页登录流程；用户仅需在 GitHub 页面完成登录和授权，不应把 token 或密码发到聊天中。
-
-目前的本地准备不等于已经创建远端仓库或部署成功。最终网址以 GitHub 返回的 Pages 地址为准；项目站点通常为 https://用户名.github.io/cyber-aquarium/。
+源码已在用户确认公开后上传。首次 Actions 的 build 和 deploy 任务均已成功完成。提交使用 GitHub noreply 邮箱，不公开本机私人邮箱。运行资源保持原样，无需本机持续开机。
 
 ## 自动部署流程
 
@@ -45,7 +37,7 @@
 
 构建检查同时按网站根目录 / 和项目子路径 /cyber-aquarium/ 解析全部静态引用，防止资源意外指向用户名站点的根目录。dist 内包含 .nojekyll，使用 Actions 直接发布产物，不通过 Jekyll 转换。
 
-本地预览器默认在根路径运行；项目子路径还需通过本地模拟挂载与首次线上响应核对。纯静态单页没有客户端子路径路由，不需要 SPA 重写。
+本地预览器默认在根路径运行；项目子路径已通过本地模拟挂载核对。线上验收以公开站点的 HTTP 状态、文件摘要及资源类型为准。纯静态单页没有客户端子路径路由，不需要 SPA 重写。
 
 ## 以后更新
 
